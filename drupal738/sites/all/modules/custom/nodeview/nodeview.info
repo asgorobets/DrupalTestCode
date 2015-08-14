@@ -1,0 +1,4 @@
+name = Node View
+description = Displays information about the viewed node.
+package = Custom 
+core = 7.x

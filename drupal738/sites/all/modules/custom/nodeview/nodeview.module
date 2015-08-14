@@ -1,0 +1,54 @@
+<?php
+/**
+* Implements hook_permission()  
+*/
+function nodeview_permission() {
+    return array(
+        'access mynode' => array(
+        'title' => t('Gives access to "nodeview" module'),
+        'description' => t('Perform administration tasks for "nodeview" module.'),
+        ),
+    );
+}
+
+
+
+/**
+* Implements hook_menu()
+*/  
+function nodeview_menu(){
+    $items = array();
+    $items ['mynode'] = array(
+        'title' => 'Node View',    
+        'page callback' => 'nodeview_mynode',
+        'access arguments' => array('access mynode'), 
+        'weight' => 12, );
+    return $items;            
+}
+ 
+/*function nodeview_node_view(&$node){
+    global $user;
+    if($node->uid == $user->uid){
+        $node->title . 'sometext';
+    }
+}*/
+
+function nodeview_mynode(){
+    global $user;
+    $uid = $user->uid;
+
+    
+    $results = db_select('SELECT * FROM {node} WHERE uid=$uid');
+
+    $header = array(t('NodeID'), t('UserID'), t('Timestamp'),);
+    $rows = array();
+
+    foreach($results AS $result){
+         $rows[] = array(
+            $result->nv_id,
+            $result->uid,
+            $result->time,
+        );
+    }
+    return theme('table', array('header' => $header, 'rows'=> $rows));
+}

@@ -1,0 +1,4 @@
+name = First Page 
+description = Displays :: Hello %username% in the content and sidebar region.
+package = Custom 
+core = 7.x

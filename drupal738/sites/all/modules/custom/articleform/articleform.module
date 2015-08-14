@@ -1,0 +1,176 @@
+<?php
+/**
+* Implements hook_permission()  
+*/
+function articleform_permission() {
+    return array(
+        'access myarticle' => array(
+        'title' => t('Gives access to "articleform" module'),
+        'description' => t('Perform administration tasks for "articleform" module.'),
+        ),
+    );
+}
+
+
+
+/**
+* Implements hook_menu()
+*/  
+function articleform_menu(){
+    $items = array();
+    $items ['myarticle'] = array(
+        'title' => 'Article Options',    
+        'page callback' => 'myarticle',
+        'access arguments' => array('access myarticle'), 
+        'weight' => 11, );
+    return $items;            
+}
+ 
+
+
+/**
+* Callback function 
+*/
+function myarticle() {
+    return drupal_get_form('selectbox');   
+}
+  
+
+
+/**
+* Implements Form API 
+*/
+function selectbox($form_state){ 
+   
+    $type = "article";
+    $nodes = node_load_multiple(array(), array('type' => $type)); 
+    $titles = array();
+        foreach($nodes as $node) {
+            $titles[$node->nid] = $node->title;
+        }    
+    
+    $form = array();
+    
+    $form['selectbox'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('My Article Form Options'),
+    );
+    
+    $form['selectbox']['nid'] = array(
+        '#type' => 'select',
+        '#options' => $titles,
+        '#description' => t('<i>Choose <strong>- Article -</strong></i>'),        
+        '#required' => TRUE,
+    );
+          
+    $form['selectbox']['npublish'] = array(
+        '#type' => 'select',
+        '#options' => array (
+            0 => t('- Select -'),
+            1 => t('unpublish'),
+            2 => t('publish'),
+        ),
+        '#description' => t('<i>Choose <strong>- Status -</strong></i>'),
+    );
+    
+    $form['selectbox']['nsticky'] = array(
+        '#type' => 'select',
+        '#options' => array (
+            0 => t('- Select -'),
+            1 => t('unsticky'),
+            2 => t('sticky'),
+        ),
+        '#description' => t('<i>Choose <strong>- Position -</strong></i>'),
+    );
+    
+    $form['selectbox']['update'] = array(
+        '#type' => 'submit',
+        '#value' => t('Update'),
+    );
+    
+    $form['selectbox']['delete'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete'),
+        '#submit' => array ('selectbox_delete'),
+        '#validate' => array('selectbox_delete_submit'),    
+    );    
+     
+    return $form;
+}
+
+
+
+/**
+* Implements form_submit()
+*/
+function selectbox_submit($form, &$form_state) {
+
+    if ($form_state['values']['npublish'] == 1){
+        $edit_operation = variable_set("unpublish", 'default');
+        drupal_set_message(t('Article is UNPUBLISHED'));
+    }
+    else{
+        $edit_operation = variable_set("publish", 'default');
+        drupal_set_message(t('Article is PUBLISHED'));
+    }
+            
+    if ($form_state['values']['nsticky'] == 1){
+        $edit_operation = variable_set("unsticky", 'default');
+        drupal_set_message(t('Article is UNSTICKY'));
+    }
+    else{
+        $edit_operation = variable_set("sticky", 'default');
+        drupal_set_message(t('Article is STICKY'));
+    }
+            
+    $node = node_load($form_state['values']['nid']);
+    $node->status = $form_state['values']['npublish'];
+    $node->status = $form_state['values']['nsticky'];
+    node_save($node);
+}
+
+
+
+/**
+* Delete selected article
+*/
+function selectbox_delete($form, &$form_state, $type = 'article') {
+    $node = node_load($form_state['values']['nid']);
+
+    if ($form_state['values']['nid'] == TRUE && 
+        $form_state['values']['delete'] == TRUE) {
+               
+        $query = new EntityFieldQuery;
+        $result = $query
+            ->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', $type)
+            ->propertyCondition('status', 1)
+            ->propertyOrderBy('created', 'DESC')
+            ->range(0, 25)
+            ->execute();
+
+        $options = array();
+        if (!empty($result['node'])) {
+            $nodes = node_load_multiple(array_keys($result['node']));
+            foreach ($nodes as $nid => $node) {
+                $options[$nid] = $node->title;
+            }   
+        }    
+    }       
+}
+
+
+
+/**
+* Validates delete option
+*/
+
+function selectbox_delete_submit(&$form, &$form_state) {
+    $nid = $form_state['values']['nid'];
+
+    node_delete($nid);
+  
+    drupal_set_message(t('Article was DELETED!')); 
+    $form_state['redirect'] = '<front>';
+    
+}

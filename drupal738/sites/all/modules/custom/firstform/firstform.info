@@ -1,0 +1,4 @@
+name = First Form
+description = Changes the sitename
+package = Custom 
+core = 7.x

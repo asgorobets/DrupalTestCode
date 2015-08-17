@@ -1,0 +1,77 @@
+<?php
+/**
+ * template comment block
+ */
+
+
+/**
+* Implements hook_menu()
+*/  
+function firstpage_menu(){
+    $items ['mypage'] = array(
+        'title' => 'Hello Message',    
+        'page callback' => 'user',
+        'access arguments' => array('access mypage'),
+        );
+    return $items;
+}
+
+
+
+/**
+* Callback function
+*/
+function user(){
+    global $user;
+        return 'Hello ' . $user->name;
+}
+
+
+
+/**
+* Implements hook_permission()
+*/
+function firstpage_permission() {
+    return array(
+        'access mypage' => array(
+              'title' => t('Gives access to "firstpage" module'),
+              'description' => t('Perform administration tasks for "firstpage" module.'),
+        ),
+  );
+}
+
+
+
+/**
+ * Implementing hook_block_info() 
+ */
+function firstpage_block_info(){
+    $blocks['hellouser'] = array(
+        'info' => t('Greetings Message'),
+        'cache' => DRUPAL_CACHE_PER_ROLE, 
+        );
+    return $blocks;
+}
+
+
+
+/**
+ * Implementing hook_block_view()
+ */
+function firstpage_block_view($delta = '') {
+    $block = array();
+    global $user;
+
+    $block['subject'] = t('Greetings Message');
+    
+    if ($user->uid != 0){
+        $block['content'] = t('Greetings ' . $user->name); 
+    }
+    else {
+        $block['subject'] = t('Access Denied');
+        $block['content'] = t('You are not authorized to access this block.'); 
+    }
+
+    return $block;
+}
+

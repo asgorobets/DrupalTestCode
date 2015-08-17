@@ -1,0 +1,4 @@
+name = Article Form
+description = Updates & Deletes nodes of type "article".
+package = Custom 
+core = 7.x

@@ -1,0 +1,97 @@
+<?php
+
+/**
+* Implements hook_menu()
+*/  
+function firstform_menu(){
+    $items = array();
+    $items ['myform'] = array(
+        'title' => 'Website Name',    
+        'page callback' => 'myform',
+        'access arguments' => array('access myform'), 
+        'weight' => 10, );
+    return $items;            
+}
+ 
+
+
+/**
+* Callback function 
+*/
+function myform() {
+    return drupal_get_form('firstform_myform');   
+}
+  
+
+
+/**
+* Implements Form API
+*/
+function firstform_myform($form_state){
+    $form['wsname'] = array (
+        '#type' => 'textfield', 
+        '#title' => t('Site name: '),
+        '#description' => t('Type the new desired <strong>%sitename%</strong><i>'. ' (min. 6 characters)</i>'),
+        '#default_value' => variable_get('site_name', 'Default'),
+        '#size' => 46,  
+        '#maxlength' => 25, 
+        '#required' => TRUE,
+    );
+    
+    $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    );
+    
+    return $form;
+}
+
+
+
+/**
+* Implements form_validate()
+*/   
+function firstform_myform_validate($form, &$form_state) {  
+    if(isset($_POST['wsname'])){
+        $wsName = trim($_POST['wsname']);
+    }
+   
+    if(strlen($wsName) < 6) {
+            form_set_error('wsname', t('<center><strong>WHOOPS</strong>'
+                    . '</center><br><strong>%sitename%</strong> must contain'
+                    . ' minimum <strong>6 characters</strong>'));
+    }
+}
+
+
+
+/**
+* Implements form_submit()
+*/
+function firstform_myform_submit($form, &$form_state) {
+    if(isset($_POST['wsname'])){
+        $wsName = trim($_POST['wsname']);
+    }
+   
+    $form['wsname'] = array (
+        '#default_value' => variable_set('site_name', $wsName),
+    );
+    
+    drupal_set_message(t('<center><strong>SUCCESS</strong></center><br>'
+            . '<strong>%sitename%</strong> is changed into: <i>'
+            .$wsName.'</i>'));
+}    
+
+
+
+/**
+* Implements hook_permission()  
+*/
+function firstform_permission() {
+    return array(
+        'access myform' => array(
+            'title' => t('Gives access to "firstform" module'),
+            'description' => t('Perform administration tasks for "firstform" module.'),
+        ),   
+    );
+}
